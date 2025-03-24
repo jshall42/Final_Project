@@ -1,3 +1,39 @@
+
+// Swap to Registration form with Login
+document.getElementById('btnSwapRegister').addEventListener('click', function() {
+    document.getElementById('frmLogin').style.display = 'none'
+    document.getElementById('frmRegister').style.display = 'block'
+})
+
+// Swap to Login form with Registration
+document.getElementById('btnSwapLogin').addEventListener('click', function() {
+    document.getElementById('frmRegister').style.display = 'none'
+    document.getElementById('frmLogin').style.display = 'block'
+})
+
+// Home  There is currently no Home but when we make the Main Page/Page to sell the site then this will do more then just hide the others
+document.getElementById('btnHome').addEventListener('click', function() {
+    document.getElementById('frmLogin').style.display = 'none'
+    document.getElementById('frmRegister').style.display = 'none'
+    document.getElementById('homeContent').style.display = 'block'
+})
+
+// Registration form
+document.getElementById('btnShowRegister').addEventListener('click', function() {
+    document.getElementById('frmLogin').style.display = 'none'
+    document.getElementById('frmRegister').style.display = 'block'
+    document.getElementById('homeContent').style.display = 'none'
+})
+
+// Login form
+document.getElementById('btnShowLogin').addEventListener('click', function() {
+    document.getElementById('frmLogin').style.display = 'block'
+    document.getElementById('frmRegister').style.display = 'none'
+    document.getElementById('homeContent').style.display = 'none'
+})
+
+
+
 document.addEventListener("DOMContentLoaded", function () {
     console.log("Document loaded")
     // make sure the document is loaded before running any code
@@ -50,6 +86,8 @@ document.addEventListener("DOMContentLoaded", function () {
             const strPassword = document.querySelector("#txtPassword").value
             let strFirstName = document.querySelector("#txtFirstname").value
             let strLastName = document.querySelector("#txtLastname").value
+            let strContactUsername = document.querySelector("#txtUsernameContact").value
+            let contactMethod = document.querySelector("#inputGroupSelect01").value
     
             strUserName = strUserName.toLowerCase()
             let blnError = false
@@ -73,6 +111,16 @@ document.addEventListener("DOMContentLoaded", function () {
             if(strLastName.trim().length < 1) {
                 blnError = true
                 strMessage += "<p class='mb-0 mt-0'>Must Provide a Last Name</p>"
+            }
+
+            if(strContactUsername.trim().length < 1) {
+                blnError = true
+                strMessage += "<p class='mb-0 mt-0'>Must Provide a Contact Info Email/Number/Number</p>"
+            }
+
+            if (contactMethod === "Best way to contact") {
+                blnError = true;
+                strMessage += "<p class='mb-0 mt-0'>Please choose a contact method</p>";
             }
             
             if (blnError){
