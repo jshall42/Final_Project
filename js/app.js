@@ -112,16 +112,21 @@ document.addEventListener("DOMContentLoaded", function () {
                 blnError = true
                 strMessage += "<p class='mb-0 mt-0'>Must Provide a Last Name</p>"
             }
-
-            if(strContactUsername.trim().length < 1) {
-                blnError = true
-                strMessage += "<p class='mb-0 mt-0'>Must Provide a Contact Info Email/Number/Number</p>"
+            if (contactMethod != "Email" || contactMethod != "Mobile" || contactMethod != "Teams" || contactMethod != "Discord" ) {
+                blnError = true;
+                strMessage += "<p class='mb-0 mt-0'>Please choose one of the values(Email,Mobile,Teams,Discord)</p>";
             }
 
             if (contactMethod === "Best way to contact") {
                 blnError = true;
                 strMessage += "<p class='mb-0 mt-0'>Please choose a contact method</p>";
             }
+
+            if(strContactUsername.trim().length < 1) {
+                blnError = true
+                strMessage += "<p class='mb-0 mt-0'>Must Provide a Contact Info Email/Number/Number</p>"
+            }
+
             
             if (blnError){
                 Swal.fire({
