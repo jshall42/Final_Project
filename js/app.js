@@ -84,6 +84,7 @@ document.addEventListener("DOMContentLoaded", function () {
             const regPhone = /^\s*(?:\+?(\d{1,3}))?([-. (]*(\d{3})[-. )]*)?((\d{3})[-. ]*(\d{2,4})(?:[-.x ]*(\d+))?)\s*$/
             let strUserName = document.querySelector("#txtUsername").value
             const strPassword = document.querySelector("#txtPassword").value
+            let strRegistration = document.querySelector('#registerationType').value
             let strFirstName = document.querySelector("#txtFirstname").value
             let strLastName = document.querySelector("#txtLastname").value
             let strContactUsername = document.querySelector("#txtUsernameContact").value
@@ -103,7 +104,10 @@ document.addEventListener("DOMContentLoaded", function () {
                 blnError = true
                 strMessage += "<p class='mb-0 mt-0'>Password Must Be at Least 8 Characters Long and Contain at Least One Uppercase Letter, One Lowercase Letter, and One Number</p>"
             }
-
+            if (strRegistration != "teacher" && strRegistration != "student") {
+                blnError = true;
+                strMessage += "<p class='mb-0 mt-0'>Please choose one of the values(Teacher,Student)</p>";
+            }
             if(strFirstName.trim().length < 1) {
                 blnError = true
                 strMessage += "<p class='mb-0 mt-0'>Must Provide a First Name</p>"
