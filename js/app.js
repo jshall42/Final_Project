@@ -18,6 +18,12 @@ document.addEventListener("DOMContentLoaded", function () {
         document.getElementById('frmLogin').style.display = 'block'
     })
 
+    // Swap to Password Reset from login
+    document.getElementById('btnSwapPassword').addEventListener('click', function() {
+        document.getElementById('frmLogin').style.display = 'none'
+        document.getElementById('frmPassword').style.display = 'block'
+    })
+
     // Home  There is currently no Home but when we make the Main Page/Page to sell the site then this will do more then just hide the others
     document.getElementById('btnHome').addEventListener('click', function() {
         document.getElementById('frmLogin').style.display = 'none'
@@ -28,6 +34,7 @@ document.addEventListener("DOMContentLoaded", function () {
     // Registration form
     document.getElementById('btnShowRegister').addEventListener('click', function() {
         document.getElementById('frmLogin').style.display = 'none'
+        document.getElementById('frmPassword').style.display = 'none'
         document.getElementById('frmRegister').style.display = 'block'
         // document.getElementById('homeContent').style.display = 'none'
     })
@@ -35,6 +42,7 @@ document.addEventListener("DOMContentLoaded", function () {
     // Login form
     document.getElementById('btnShowLogin').addEventListener('click', function() {
         document.getElementById('frmLogin').style.display = 'block'
+        document.getElementById('frmPassword').style.display = 'none'
         document.getElementById('frmRegister').style.display = 'none'
         // document.getElementById('homeContent').style.display = 'none'
     })
