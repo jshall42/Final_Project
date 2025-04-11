@@ -24,11 +24,12 @@ document.addEventListener("DOMContentLoaded", function () {
         document.getElementById('frmPassword').style.display = 'block'
     })
 
-    // Home  There is currently no Home but when we make the Main Page/Page to sell the site then this will do more then just hide the others
+    // Home
     document.getElementById('btnHome').addEventListener('click', function() {
         document.getElementById('frmLogin').style.display = 'none'
         document.getElementById('frmRegister').style.display = 'none'
-        // document.getElementById('homeContent').style.display = 'block'
+        document.getElementById('divContent').style.display = 'none'
+        document.getElementById('homeContent').style.display = 'block'
     })
 
     // Registration form
@@ -36,7 +37,7 @@ document.addEventListener("DOMContentLoaded", function () {
         document.getElementById('frmLogin').style.display = 'none'
         document.getElementById('frmPassword').style.display = 'none'
         document.getElementById('frmRegister').style.display = 'block'
-        // document.getElementById('homeContent').style.display = 'none'
+        document.getElementById('homeContent').style.display = 'none'
     })
 
     // Login form
@@ -44,7 +45,7 @@ document.addEventListener("DOMContentLoaded", function () {
         document.getElementById('frmLogin').style.display = 'block'
         document.getElementById('frmPassword').style.display = 'none'
         document.getElementById('frmRegister').style.display = 'none'
-        // document.getElementById('homeContent').style.display = 'none'
+        document.getElementById('homeContent').style.display = 'none'
     })
 
     if (loginForm){
@@ -76,12 +77,22 @@ document.addEventListener("DOMContentLoaded", function () {
                 });
             }
             else {
-                Swal.fire({
-                    title: "Success!",
-                    html: "<p class='mb-0 mt-0'>Login Successful</p>",
-                    icon: "success"
-                });
+                // Hide the login and register buttons because they logged in
+                document.getElementById("btnShowRegister").classList.add("d-none")
+                document.getElementById("btnShowLogin").classList.add("d-none")
+
+                // Show Logout
+                document.getElementById("btnLogout").classList.remove("d-none")
+
+                fetch("components/course.html")
+                .then(response => response.text())
+                .then(html => {
+                    document.querySelector('#divContent').innerHTML = html
+                    document.querySelector('#frmLogin').style.display = 'none' // Hide login form
+                })
+                .catch(error => console.error("Error loading course page:", error))
             }
+            
         })
     }
 
