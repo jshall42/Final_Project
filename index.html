@@ -30,6 +30,9 @@
                     <li class="nav-item">
                         <button class="nav-link btn btn-link text-white" id="btnShowLogin" type="button" aria-label="Log In">Log In</button>
                     </li>
+                    <li class="nav-item">
+                        <button class="nav-link btn btn-link text-white d-none" id="btnLogout" type="button" aria-label="logout">Logout</button>
+                    </li>
                 </ul>
             </div>
         </div>
@@ -38,6 +41,10 @@
     <!-- Main Forms Container -->
     <div class="container mt-5 pt-5">
         <div class="row justify-content-center">
+
+            <div id="homeContent">
+                <h1>Placeholder for homepage</h1>
+            </div>
 
             <!-- Registration Form -->
             <form class="card col-12 col-md-8 col-lg-6" id="frmRegister" style="display: none;">
@@ -110,6 +117,9 @@
                     <button class="btn btn-primary col-12 mt-2" type="button" id="btnResetPassword">Send Reset</button>
                 </div>
             </form>
+            
+            <!-- This is for the showing the other content in components-->
+            <div id="divContent"></div>
 
         </div>
     </div>
