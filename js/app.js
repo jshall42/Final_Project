@@ -2,8 +2,8 @@
 document.addEventListener("DOMContentLoaded", function () {
     console.log("Document loaded")
     // make sure the document is loaded before running any code
-    const loginForm = document.getElementById("loginPage");
-    const signUpForm = document.getElementById("signupPage");
+    const loginForm = document.getElementById("frmLogin");
+    const signUpForm = document.getElementById("frmRegister");
 
     
     // Swap to Registration form with Login
