@@ -1,0 +1,17 @@
+{
+    "short_name": "Peer Review",
+    "name": "Peer Review Application",
+    "description": "Application to review peers",
+    "icons": [
+        {
+            "src": "images/logo.png",
+            "type": "image/png",
+            "sizes": "1024x1024"
+        }
+    ],
+    "start_url": "index.html",
+    "display": "standalone",
+    "background_color": "#fff",
+    "theme_color": "#3f51b5",
+    "scope": "/"
+}
