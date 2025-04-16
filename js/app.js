@@ -12,7 +12,19 @@ document.addEventListener("DOMContentLoaded", function () {
         document.getElementById('frmRegister').style.display = 'block'
     })
 
-    // Swap to Login form with Registration
+    // Swap to Registration form from home
+    document.getElementById('btnReg').addEventListener('click', function() {
+        document.getElementById('homeContent').style.display = 'none'
+        document.getElementById('frmRegister').style.display = 'block'
+    })
+
+    // Swap to Login form from home
+    document.getElementById('btnLog').addEventListener('click', function() {
+        document.getElementById('homeContent').style.display = 'none'
+        document.getElementById('frmLogin').style.display = 'block'
+    })
+
+    // Swap to Login from Registrtion
     document.getElementById('btnSwapLogin').addEventListener('click', function() {
         document.getElementById('frmRegister').style.display = 'none'
         document.getElementById('frmLogin').style.display = 'block'
