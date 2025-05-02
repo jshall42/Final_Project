@@ -107,7 +107,7 @@ app.post('/peerreview/user', (req, res, next) => {
     }
 })
 
-app.post('/peerreview/login', (req, res) => {
+app.post('/peerreview/login', (req, res, next) => {
     try {
         // getting the user info from the front
         let strEmail = req.body.email.trim().toLowerCase()
@@ -153,6 +153,71 @@ app.post('/peerreview/login', (req, res) => {
         res.status(500).json({
             status: "error",
             message: "Server error during login: " + error.message
+        })
+    }
+})
+
+app.post('/peerreview/course', (req, res, next) => {
+    try {
+        // getting the course info from the front end
+        let strCourseName = req.body.name
+        let strCourseNumber = req.body.number
+        let strCourseSection = req.body.section
+        let strCourseTerm = req.body.term
+        let strStartDate = req.body.start
+        let strEndDate = req.body.end
+        let strCourseCode = req.body.code
+
+        // check the user input
+        if (!strCourseName || !strCourseNumber || !strCourseSection || !strCourseTerm ||
+            !strStartDate || !strEndDate || !strCourseCode) {
+            return res.status(400).json({
+                status: "error",
+                message: "All course fields are required"
+            })
+        }
+
+        strCourseName = strCourseName.trim()
+        strCourseNumber = strCourseNumber.trim()
+        strCourseSection = strCourseSection.trim()
+        strCourseTerm = strCourseTerm.trim()
+        strStartDate = strStartDate.trim()
+        strEndDate = strEndDate.trim()
+        strCourseCode = strCourseCode.trim()
+
+        // insert the course into the database
+        const insertCourseSql = `
+            INSERT INTO tblCourse (CourseName, CourseNumber, CourseSection, CourseTerm, StartDate, EndDate, CourseCode)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        `
+        db.run(insertCourseSql, [
+            strCourseName,
+            strCourseNumber,
+            strCourseSection,
+            strCourseTerm,
+            strStartDate,
+            strEndDate,
+            strCourseCode
+        ], function (err) {
+            if (err) {
+                console.error("Insert course error:", err)
+                return res.status(500).json({
+                    status: "error",
+                    message: "Failed to add course: " + err.message
+                })
+            }
+
+            res.status(201).json({
+                status: "success",
+                message: "Course created successfully",
+                courseId: this.lastID
+            })
+        })
+    } catch (error) {
+        console.error("Uncaught error in /peerreview/course:", error)
+        res.status(500).json({
+            status: "error",
+            message: "Server error while creating course: " + error.message
         })
     }
 })
