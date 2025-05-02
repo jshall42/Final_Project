@@ -14,101 +14,149 @@ app.use(cors())
 app.use(express.json())
 
 
-app.post('/user', (req, res, next) => {
-    // Getting all the info from the front
-    let strEmail = req.body.email.trim().toLowerCase()
-    let strPassword = req.body.password
-    let strFirstName = req.body.firstName.trim()
-    let strLastName = req.body.lastName.trim()
-    let strContactType = req.body.contactType
-    let strContactInfo = req.body.contactInfo
-    let creationDateTime = new Date().toISOString()
-    let lastLoginDateTime = null
+app.post('/peerreview/user', (req, res, next) => {
+    try {
+        // getting info from user
+        let strEmail = req.body.email.trim().toLowerCase()
+        let strPassword = req.body.password
+        let strFirstName = req.body.firstName.trim()
+        let strLastName = req.body.lastName.trim()
+        let strContactType = req.body.contactType
+        let strContactInfo = req.body.contactInfo
+        let creationDateTime = new Date().toISOString()
+        let lastLoginDateTime = null
+        let strUserType = req.body.userType
 
-    // Checking to see if the info is good
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(strEmail)) {
-        return res.status(400).json({ error: "You must provide a valid email address" })
-    }
-
-    if (strPassword.length < 8 ||
-        !/[A-Z]/.test(strPassword) ||
-        !/[a-z]/.test(strPassword) ||
-        !/[0-9]/.test(strPassword) ||
-        !/[!@#$%^&*(),.?":{}|<>]/.test(strPassword)) {
-        return res.status(400).json({ error: "Password must meet complexity requirements" })
-    }
-    // Password bcrypt
-    strPassword = bcrypt.hashSync(strPassword, intSalt)
-
-    // Inserting the new user
-    let userInsert = `INSERT INTO tblUsers (Email, Password, FirstName, LastName, CreationDateTime, LastLoginDateTime) 
-                      VALUES (?, ?, ?, ?, ?, ?)`
-
-    db.run(userInsert, [strEmail, strPassword, strFirstName, strLastName, creationDateTime, lastLoginDateTime], function (err) {
-        if (err) {
-            console.log(err)
-            return res.status(400).json({
+        // double checking to see if user input is good
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+        if (!emailRegex.test(strEmail)) {
+            return res.status(400).json({ 
                 status: "error",
-                message: "Failed to create user: " + err.message
+                message: "You must provide a valid email address" 
             })
         }
+
+        if (strPassword.length < 8 ||
+            !/[A-Z]/.test(strPassword) ||
+            !/[a-z]/.test(strPassword) ||
+            !/[0-9]/.test(strPassword)) {
+            return res.status(400).json({ 
+                status: "error",
+                message: "Password must meet complexity requirements" 
+            })
+        }
+
+        // check if user exist
+        let checkUserSql = `SELECT Email FROM tblUsers WHERE Email = ?`
         
-        // Inserting there socials
-        let socialInsert = `INSERT INTO tblSocials (SocialType, ContactInfo, UserEmail) VALUES (?, ?, ?)`
-        db.run(socialInsert, [strContactType, strContactInfo, strEmail], function (err) {
+        db.get(checkUserSql, [strEmail], (err, row) => {
             if (err) {
-                console.log(err)
-                return res.status(400).json({
+                return res.status(500).json({
                     status: "error",
-                    message: "User created but failed to save social info: " + err.message
+                    message: "Database error checking existing user: " + err.message
                 })
             }
+            
+            if (row) {
+                return res.status(400).json({
+                    status: "error",
+                    message: "User with this email already exists"
+                })
+            }
+            
+            // bcrypt password
+            const hashedPassword = bcrypt.hashSync(strPassword, intSalt)
 
-            res.status(201).json({
-                status: "success",
-                message: "User and social info created successfully"
+            // insert the user
+            let userInsert = `INSERT INTO tblUsers (Email, Password, FirstName, LastName, CreationDateTime, LastLoginDateTime, UserType) 
+                            VALUES (?, ?, ?, ?, ?, ?, ?)`
+
+            db.run(userInsert, [strEmail, hashedPassword, strFirstName, strLastName, creationDateTime, lastLoginDateTime, strUserType], function (err) {
+                if (err) {
+                    console.log("User insert error:", err)
+                    return res.status(500).json({
+                        status: "error",
+                        message: "Failed to create user: " + err.message
+                    })
+                }
+                
+                // insert social contact info
+                let socialInsert = `INSERT INTO tblSocials (SocialType, ContactInfo, UserEmail) VALUES (?, ?, ?)`
+                db.run(socialInsert, [strContactType, strContactInfo, strEmail], function (err) {
+                    if (err) {
+                        console.log("Social insert error:", err)
+                        return res.status(500).json({
+                            status: "error",
+                            message: "User created but failed to save social info: " + err.message
+                        })
+                    }
+
+                    res.status(201).json({
+                        status: "success",
+                        message: "User and social info created successfully"
+                    })
+                })
             })
         })
-    })
+    } catch (error) {
+        console.error("Uncaught error in registration:", error)
+        res.status(500).json({
+            status: "error",
+            message: "Server error during registration: " + error.message
+        })
+    }
 })
 
-app.post('/login', (req, res, next) => {
-    let strEmail = req.body.email.trim().toLowerCase()
-    let strPassword = req.body.password
-
-    // get user based on the email
-    let strSelect = `SELECT * FROM tblUsers WHERE Email = ?`
-    db.get(strSelect, [strEmail], (err, row) => {
-        if (err) {
-            console.log(err)
-            return res.status(400).json({ status: "error", message: err.message })
-        }
-
-        if (!row) {
-            return res.status(404).json({ status: "error", message: "User not found" })
-        }
-
-        // check if the password matches
-        bcrypt.compare(strPassword, row.Password, (err, result) => {
-            if (err || !result) {
+app.post('/peerreview/login', (req, res) => {
+    try {
+        // getting the user info from the front
+        let strEmail = req.body.email.trim().toLowerCase()
+        let strPassword = req.body.password
+        
+        //selecting the user from the db to see if they exist
+        let strSelect = `SELECT * FROM tblUsers WHERE Email = ?`
+        db.get(strSelect, [strEmail], (err, row) => {
+            if (err) {
+                console.error(err)
+                return res.status(500).json({ status: "error", message: "Internal server error" })
+            }
+            // If they dont exist or password is wrong send invalid credentials
+            if (!row) {
                 return res.status(401).json({ status: "error", message: "Invalid credentials" })
             }
 
-            // updating LastLoginDateTime with the current time
-            let lastLoginDateTime = new Date().toISOString()
-            let strUpdate = `UPDATE tblUsers SET LastLoginDateTime = ? WHERE Email = ?`
+            const result = bcrypt.compareSync(strPassword, row.Password)
+            if (!result) {
+                return res.status(401).json({ status: "error", message: "Invalid credentials" })
+            }
+            // Update last login time
+            const lastLoginDateTime = new Date().toISOString()
+            const strUpdate = `UPDATE tblUsers SET LastLoginDateTime = ? WHERE Email = ?`
+
             db.run(strUpdate, [lastLoginDateTime, strEmail], function (err) {
                 if (err) {
-                    console.log(err)
-                    return res.status(400).json({ status: "error", message: err.message })
+                    console.error(err)
+                    return res.status(500).json({ status: "error", message: "Error updating login time" })
                 }
 
                 res.status(200).json({
                     status: "success",
-                    message: "Login successful"
+                    message: "Login successful",
+                    userType: row.UserType,
+                    firstName: row.FirstName,
+                    email: row.Email
                 })
             })
         })
-    })
+    } catch (error) {
+        console.error("Uncaught error in login:", error)
+        res.status(500).json({
+            status: "error",
+            message: "Server error during login: " + error.message
+        })
+    }
+})
+
+app.listen(HTTP_PORT,() => {
+    console.log('App listening on',HTTP_PORT)
 })
