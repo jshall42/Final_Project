@@ -1,9 +1,8 @@
-
 document.addEventListener("DOMContentLoaded", function () {
     console.log("Document loaded")
     // make sure the document is loaded before running any code
-    const loginForm = document.getElementById("frmLogin");
-    const signUpForm = document.getElementById("frmRegister");
+    const loginForm = document.getElementById("frmLogin")
+    const signUpForm = document.getElementById("frmRegister")
 
     
     // Swap to Registration form with Login
@@ -60,8 +59,8 @@ document.addEventListener("DOMContentLoaded", function () {
         document.getElementById('homeContent').style.display = 'none'
     })
 
-    if (loginForm){
-        document.querySelector("#btnLogin").addEventListener("click",(e) => {
+    if (loginForm) {
+        document.querySelector("#btnLogin").addEventListener("click", (e) => {
             const regEmail = /[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/
             const regPassword = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,}$/
             let strUserName = document.querySelector("#txtLoginUsername").value
@@ -71,45 +70,86 @@ document.addEventListener("DOMContentLoaded", function () {
             let blnError = false
             let strMessage = ""
     
-            if (!regEmail.test(strUserName.trim())){
+            if (!regEmail.test(strUserName.trim())) {
                 blnError = true
-                strMessage += "<p class='mb-0 mt-0'>Username Must Be an Email Address</p>"               
+                strMessage += "<p class='mb-0 mt-0'>Username Must Be an Email Address</p>"
             }
     
             if (!regPassword.test(strPassword.trim())) {
                 blnError = true
                 strMessage += "<p class='mb-0 mt-0'>Password Must Be at Least 8 Characters Long and Contain at Least One Uppercase Letter, One Lowercase Letter, and One Number</p>"
             }
-            
-            if (blnError){
+    
+            if (blnError) {
                 Swal.fire({
                     title: "Oh no, you have error!",
                     html: strMessage,
                     icon: "error"
-                });
-            }
-            else {
-                // Hide the login and register buttons because they logged in
-                document.getElementById("btnShowRegister").classList.add("d-none")
-                document.getElementById("btnShowLogin").classList.add("d-none")
-
-                // Show Logout
-                document.getElementById("btnLogout").classList.remove("d-none")
-
-                fetch("components/course.html")
-                .then(response => response.text())
-                .then(html => {
-                    document.querySelector('#divContent').innerHTML = html
-                    document.querySelector('#frmLogin').style.display = 'none' // Hide login form
                 })
-                .catch(error => console.error("Error loading course page:", error))
+            } else {
+                fetch("http://localhost:8000/peerreview/login", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        email: strUserName,
+                        password: strPassword
+                    })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === "success") {
+                        if (data.userType === "teacher" || data.userType === "student") {
+                            Swal.fire({
+                                title: "Success!",
+                                html: `<p class='mb-0 mt-0'>Welcome, ${data.firstName} (${data.userType})</p>`,
+                                icon: "success",
+                                allowOutsideClick: false,
+                                confirmButtonText: "Continue"
+                            }).then((result) => {
+                                if (result.isConfirmed) {
+                                    document.getElementById('frmLogin').style.display = 'none'
+                                    document.getElementById('frmRegister').style.display = 'none'
+                                    document.getElementById('homeContent').style.display = 'none'
+    
+                                    document.getElementById("btnShowRegister").classList.add("d-none")
+                                    document.getElementById("btnShowLogin").classList.add("d-none")
+                                    document.getElementById("btnLogout").classList.remove("d-none")
+    
+                                    fetch("components/course.html")
+                                    .then(response => response.text())
+                                    .then(html => {
+                                        document.querySelector('#divContent').innerHTML = html
+                                        document.querySelector('#divContent').style.display = 'block'
+                                    })
+                                    .catch(error => console.error("Error loading course page:", error))
+                                }
+                            })
+                        }
+                    } else {
+                        Swal.fire({
+                            title: "Login Failed",
+                            html: "<p class='mb-0 mt-0'>Invalid username or password</p>",
+                            icon: "error"
+                        })
+                    }
+                })
+                .catch(err => {
+                    console.error("Login request failed:", err)
+                    Swal.fire({
+                        title: "Error",
+                        html: "<p class='mb-0 mt-0'>An error occurred during login</p>",
+                        icon: "error"
+                    })
+                })
             }
-            
         })
     }
-
-    if (signUpForm){
-        document.querySelector("#btnSubmit").addEventListener("click",(e) => {
+    
+    if (signUpForm) {
+        document.querySelector("#btnSubmit").addEventListener("click", (e) => {
+            // grabbing all the values
             const regEmail = /[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/
             const regPassword = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,}$/
             const regPhone = /^\s*(?:\+?(\d{1,3}))?([-. (]*(\d{3})[-. )]*)?((\d{3})[-. ]*(\d{2,4})(?:[-.x ]*(\d+))?)\s*$/
@@ -125,10 +165,11 @@ document.addEventListener("DOMContentLoaded", function () {
             strUserName = strUserName.toLowerCase()
             let blnError = false
             let strMessage = ""
-    
-            if (!regEmail.test(strUserName.trim())){
+
+            // checking the users inputs
+            if (!regEmail.test(strUserName.trim())) {
                 blnError = true
-                strMessage += "<p class='mb-0 mt-0'>Username Must Be an Email Address</p>"               
+                strMessage += "<p class='mb-0 mt-0'>Username Must Be an Email Address</p>"
             }
     
             if (!regPassword.test(strPassword.trim())) {
@@ -136,84 +177,128 @@ document.addEventListener("DOMContentLoaded", function () {
                 strMessage += "<p class='mb-0 mt-0'>Password Must Be at Least 8 Characters Long and Contain at Least One Uppercase Letter, One Lowercase Letter, and One Number</p>"
             }
             if (strRegistration != "teacher" && strRegistration != "student") {
-                blnError = true;
-                strMessage += "<p class='mb-0 mt-0'>Please choose one of the values(Teacher,Student)</p>";
+                blnError = true
+                strMessage += "<p class='mb-0 mt-0'>Please choose one of the values(Teacher,Student)</p>"
             }
-            if(strFirstName.trim().length < 1) {
+            if (strFirstName.trim().length < 1) {
                 blnError = true
                 strMessage += "<p class='mb-0 mt-0'>Must Provide a First Name</p>"
             }
 
-            if(strLastName.trim().length < 1) {
+            if (strLastName.trim().length < 1) {
                 blnError = true
                 strMessage += "<p class='mb-0 mt-0'>Must Provide a Last Name</p>"
             }
-            if (contactMethod != "email" && contactMethod != "mobile" && contactMethod != "teams" && contactMethod != "discord" ) {
-                blnError = true;
-                strMessage += "<p class='mb-0 mt-0'>Please choose one of the values(Email,Mobile,Teams,Discord)</p>";
+            if (contactMethod != "email" && contactMethod != "mobile" && contactMethod != "teams" && contactMethod != "discord") {
+                blnError = true
+                strMessage += "<p class='mb-0 mt-0'>Please choose one of the values(Email,Mobile,Teams,Discord)</p>"
             }
 
             if (contactMethod === "Best way to contact") {
-                blnError = true;
-                strMessage += "<p class='mb-0 mt-0'>Please choose a contact method</p>";
+                blnError = true
+                strMessage += "<p class='mb-0 mt-0'>Please choose a contact method</p>"
             }
 
-            if(contactMethod === "email" && !regEmail.test(strContactUsername.trim())) {
+            if (contactMethod === "email" && !regEmail.test(strContactUsername.trim())) {
                 blnError = true
                 strMessage += "<p class='mb-0 mt-0'>Must Provide a Valid Email Address</p>"
             }
 
-            if(contactMethod === "mobile" && !regPhone.test(strContactUsername.trim())) {
+            if (contactMethod === "mobile" && !regPhone.test(strContactUsername.trim())) {
                 blnError = true
                 strMessage += "<p class='mb-0 mt-0'>Must Provide a Valid Phone Number</p>"
             }
 
-            if(contactMethod === "teams" && strContactUsername.trim().length < 1) {
+            if (contactMethod === "teams" && strContactUsername.trim().length < 1) {
                 blnError = true
                 strMessage += "<p class='mb-0 mt-0'>Must Provide a Teams Username</p>"
             }
-            if(contactMethod === "discord" && strContactUsername.trim().length < 1) {
+            if (contactMethod === "discord" && strContactUsername.trim().length < 1) {
                 blnError = true
                 strMessage += "<p class='mb-0 mt-0'>Must Provide a Discord Username</p>"
             }
-            if(strContactUsername.trim().length < 1) {
+            if (strContactUsername.trim().length < 1) {
                 blnError = true
                 strMessage += "<p class='mb-0 mt-0'>Must Provide Contact Info</p>"
             }
 
-            
-            if (blnError){
+            // if there is an error display it
+            if (blnError) {
                 Swal.fire({
                     title: "Oh no, you have error!",
                     html: strMessage,
                     icon: "error"
-                });
+                })
             }
+            // if no error send info to backend
             else {
-                Swal.fire({
-                    title: "Success!",
-                    html: "<p class='mb-0 mt-0'>Login Successful</p>",
-                    icon: "success"
-                });
+                
+                fetch("http://localhost:8000/peerreview/user", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        email: strUserName,  
+                        password: strPassword,
+                        firstName: strFirstName,
+                        lastName: strLastName,
+                        contactType: contactMethod,
+                        contactInfo: strContactUsername,
+                        userType: strRegistration
+                    })
+                })
+                .then(response => {
+                    // if error from backend fail
+                    if (!response.ok) {
+                        return response.json().then(data => {
+                            throw new Error(data.message || data.error || "Registration failed")
+                        })
+                    }
+                    return response.json()
+                })
+                .then(data => {
+                    // show success alert and wait for user to acknowledge before redirecting
+                    Swal.fire({
+                        title: "Success!",
+                        html: "<p class='mb-0 mt-0'>Registration Successful</p>",
+                        icon: "success",
+                        allowOutsideClick: false,
+                        confirmButtonText: "Continue to Login"
+                    }).then((result) => {
+                        // only redirect when the user clicks the button
+                        if (result.isConfirmed) {
+                            document.getElementById('frmRegister').style.display = 'none' // Hide Register form
+                            document.getElementById('homeContent').style.display = 'none'
+                            document.getElementById('frmLogin').style.display = 'block'    // Show login form
+                        }
+                    })
+                })
+                .catch(error => {
+                    console.error("Registration error:", error)
+                    Swal.fire({
+                        title: "Registration Failed",
+                        html: `<p class='mb-0 mt-0'>${error.message}</p>`,
+                        icon: "error"
+                    })
+                })
             }
-        
         })
 
         // change txtUsernameContact placeholder based on selected contact method
         document.querySelector("#inputGroupSelect01").addEventListener("change", (e) => {
-            const contactMethod = e.target.value;
-            const txtUsernameContact = document.querySelector("#txtUsernameContact");
+            const contactMethod = e.target.value
+            const txtUsernameContact = document.querySelector("#txtUsernameContact")
 
             if (contactMethod == "email") {
-                txtUsernameContact.placeholder = "Email Address";
+                txtUsernameContact.placeholder = "Email Address"
             } else if (contactMethod == "mobile") {
-                txtUsernameContact.placeholder = "Mobile Number";
+                txtUsernameContact.placeholder = "Mobile Number"
             } else if (contactMethod == "teams") {
-                txtUsernameContact.placeholder = "Teams Username";
+                txtUsernameContact.placeholder = "Teams Username"
             } else if (contactMethod == "discord") {
-                txtUsernameContact.placeholder = "Discord Username";
+                txtUsernameContact.placeholder = "Discord Username"
             }
         })
     }
-
 })
