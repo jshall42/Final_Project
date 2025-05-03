@@ -8,34 +8,81 @@
 </head>
 <body>
     <!-- Main Content -->
-    <div class="container mt-2">
+    <div id='courseContent'class="container mt-2">
 
         <!-- Course List -->
         <div class="row" id="courseContainer">
-            <!-- Course Card 1 -->
-            <div class="col-md-4 mb-4">
-              <button class="btn w-100 text-start p-3 shadow-sm border-0 bg-white">
-                <h5 class="mb-1">Course Title 1</h5>
-                <p class="mb-0">Instructor: Dr. Smith</p>
-              </button>
-            </div>
-      
-            <!-- Course Card 2 -->
-            <div class="col-md-4 mb-4">
-              <button class="btn w-100 text-start p-3 shadow-sm border-0 bg-white">
-                <h5 class="mb-1">Course Title 2</h5>
-                <p class="mb-0">Instructor: Ms. Johnson</p>
-              </button>
-            </div>
-      
-            <!-- Course Card 3 -->
-            <div class="col-md-4 mb-4">
-              <button class="btn w-100 text-start p-3 shadow-sm border-0 bg-white">
-                <h5 class="mb-1">Course Title 3</h5>
-                <p class="mb-0">Instructor: Mr. Lee</p>
-              </button>
+            
+        </div>
+          <!-- modal for the user to input the course code -->
+          <div class="modal fade" id="addCourseModal" tabindex="-1" aria-labelledby="addCourseModalLabel">
+            <div class="modal-dialog">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="addCourseModalLabel">Join a Course</h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                  <label for="courseCodeInput" class="form-label">Enter Course Code:</label>
+                  <input type="text" id="courseCodeInput" class="form-control" placeholder="e.g., AQ32WB" />
+                </div>
+                <div class="modal-footer">
+                  <button type="button" id="btnSubmitCourseCode" class="btn btn-primary">Join Course</button>
+                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                </div>
+              </div>
             </div>
           </div>
+
+          <!-- Create Course Modal -->
+        <div class="modal fade" id="createCourseModal" tabindex="-1" aria-labelledby="createCourseModalLabel">
+          <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+              <form id="createCourseForm">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="createCourseModalLabel">Create New Course</h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body row g-3">
+                  <div class="col-md-6">
+                    <label for="courseName" class="form-label">Course Name</label>
+                    <input type="text" class="form-control" id="courseName" required>
+                  </div>
+                  <div class="col-md-6">
+                    <label for="courseNumber" class="form-label">Course Number</label>
+                    <input type="text" class="form-control" id="courseNumber" required>
+                  </div>
+                  <div class="col-md-4">
+                    <label for="courseSection" class="form-label">Section</label>
+                    <input type="text" class="form-control" id="courseSection" required>
+                  </div>
+                  <div class="col-md-4">
+                    <label for="courseTerm" class="form-label">Term</label>
+                    <input type="text" class="form-control" id="courseTerm" required>
+                  </div>
+                  <div class="col-md-4">
+                    <label for="courseCode" class="form-label">Course Code</label>
+                    <div class="input-group">
+                      <input type="text" class="form-control" id="courseCode" readonly required>
+                      <button class="btn btn-outline-secondary" type="button" id="btnGenerateCode">Generate</button>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <label for="startDate" class="form-label">Start Date</label>
+                    <input type="date" class="form-control" id="startDate" required>
+                  </div>
+                  <div class="col-md-6">
+                    <label for="endDate" class="form-label">End Date</label>
+                    <input type="date" class="form-control" id="endDate" required>
+                  </div>
+                </div>
+                <div class="modal-footer">
+                  <button  class="btn btn-primary">Create Course</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
 
         <div class="mb-3">
             <!-- Show depending on user role -->
