@@ -167,6 +167,7 @@ app.post('/peerreview/course', (req, res, next) => {
         let strStartDate = req.body.start
         let strEndDate = req.body.end
         let strCourseCode = req.body.code
+        let strInstructorEmail = req.body.email
 
         // check the user input
         if (!strCourseName || !strCourseNumber || !strCourseSection || !strCourseTerm ||
@@ -184,11 +185,12 @@ app.post('/peerreview/course', (req, res, next) => {
         strStartDate = strStartDate.trim()
         strEndDate = strEndDate.trim()
         strCourseCode = strCourseCode.trim()
+        strInstructorEmail = strInstructorEmail.trim()
 
         // insert the course into the database
         const insertCourseSql = `
-            INSERT INTO tblCourse (CourseName, CourseNumber, CourseSection, CourseTerm, StartDate, EndDate, CourseCode)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO tblCourse (CourseName, CourseNumber, CourseSection, CourseTerm, StartDate, EndDate, CourseCode, UserEmail)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         `
         db.run(insertCourseSql, [
             strCourseName,
@@ -197,7 +199,8 @@ app.post('/peerreview/course', (req, res, next) => {
             strCourseTerm,
             strStartDate,
             strEndDate,
-            strCourseCode
+            strCourseCode,
+            strInstructorEmail
         ], function (err) {
             if (err) {
                 console.error("Insert course error:", err)
