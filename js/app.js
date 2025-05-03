@@ -99,6 +99,66 @@ document.addEventListener("DOMContentLoaded", function () {
             const modal = new bootstrap.Modal(document.getElementById("createCourseModal"))
             modal.show()
         })
+        
+        document.getElementById("btnSubmitCourseCode").addEventListener("click", () => {
+            const courseCode = document.getElementById("courseCodeInput").value
+            const userEmail = sessionStorage.getItem("userEmail")
+
+            blnError = false
+            strMessage = ""
+            // check if the course code is valid
+            if (!courseCode) strMessage += "<p class='mb-0 mt-0'>Course Code is required</p>", blnError = true
+            if (blnError) {
+                Swal.fire({
+                    title: "Error",
+                    html: strMessage,
+                    icon: "error"
+                })
+                return
+            }
+            // send the course code to the backend
+            fetch("http://localhost:8000/peerreview/enroll", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    code: courseCode,
+                    email: userEmail
+                })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(data => {
+                        throw new Error(data.message || "Failed to enroll in course")
+                    })
+                }
+                return response.json()
+            })
+            .then(data => {
+                Swal.fire({
+                    title: "Success!",
+                    html: "<p class='mb-0 mt-0'>Enrolled in course successfully</p>",
+                    icon: "success",
+                    confirmButtonText: "OK"
+                }).then(() => {
+                    // clear the course code input field
+                    fetchAndDisplayCourses(userEmail) // refresh the course list
+                    document.getElementById("courseCodeInput").value = ""
+                    // hide the modal
+                    const modal = bootstrap.Modal.getInstance(document.getElementById("addCourseModal"))
+                    modal.hide()
+                })
+            })
+            .catch(error => {
+                console.error("Error enrolling in course:", error)
+                Swal.fire({
+                    title: "Error",
+                    html: `<p class='mb-0 mt-0'>${error.message}</p>`,
+                    icon: "error"
+                })
+            })
+        })
 
         document.getElementById("createCourseForm").addEventListener("submit", (e) => {
             e.preventDefault() // prevent the form from submitting normally
@@ -165,6 +225,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     icon: "success",
                     confirmButtonText: "OK"
                 }).then(() => {
+                    fetchAndDisplayCourses(instructorEmail) // refresh the course list
                     // clear the form fields
                     document.getElementById("courseName").value = ""
                     document.getElementById("courseNumber").value = ""
@@ -188,6 +249,52 @@ document.addEventListener("DOMContentLoaded", function () {
                 })
             })
         })
+    }
+
+    function populateCourseContainer(courses) {
+        const courseContainer = document.getElementById("courseContainer")
+        courseContainer.innerHTML = "" // clear existing content
+    
+        courses.forEach(course => {
+            const courseCard = `
+                <div class="col-md-4 mb-4">
+                    <button class="btn w-100 text-start p-3 shadow-sm border-0 bg-white">
+                        <h5 class="mb-1">${course.CourseName} ${course.CourseNumber}</h5>
+                        <p class="mb-0">Course Code: ${course.CourseCode}</p>
+                        <p class="mb-0">Section: ${course.CourseSection}</p>
+                        <p class="mb-0">Term: ${course.CourseTerm}</p>
+                        <p class="mb-0">Instructor: ${course.InstructorName}</p>
+                    </button>
+                </div>
+            `
+            courseContainer.insertAdjacentHTML("beforeend", courseCard)
+        })
+    }
+
+    function fetchAndDisplayCourses(userEmail) {
+        // check if userEmail is available
+        if (!userEmail) {
+            console.warn("No user email provided. Skipping fetch.")
+            return
+        }
+        // fetch courses from the backend
+        fetch(`http://localhost:8000/peerreview/courses?userEmail=${encodeURIComponent(userEmail)}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error("Failed to fetch courses")
+                }
+                return response.json()
+            })
+            .then(data => {
+                if (data.status === "success") {
+                    // populate the course container with the fetched courses
+                    populateCourseContainer(data.courses)
+                } else {
+                    // handle error response from the server
+                    console.error("Error fetching courses:", data.message)
+                }
+            })
+            .catch(error => console.error("Error fetching courses:", error))
     }
 
     // function to load the course page
@@ -217,6 +324,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 // event listeners for the course page
                 initializeCoursePageEventListeners()
+
+                // fetch and display courses after initializing event listeners
+                const userEmail = sessionStorage.getItem("userEmail")
+                fetchAndDisplayCourses(userEmail)
             })
             .catch(error => console.error("Error loading course page:", error))
     }
@@ -267,6 +378,7 @@ document.addEventListener("DOMContentLoaded", function () {
             .then(data => {
                 if (data.status === "success") {
                     sessionStorage.setItem("userEmail", strUserName)
+                    loadCoursePage(data.userType, strUserName)
                     Swal.fire({
                         title: "Success!",
                         html: `<p class='mb-0 mt-0'>Welcome, ${data.firstName} (${data.userType})</p>`,
