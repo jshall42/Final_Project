@@ -110,6 +110,8 @@ document.addEventListener("DOMContentLoaded", function () {
             const startDate = document.getElementById("startDate").value.trim()
             const endDate = document.getElementById("endDate").value.trim()
             const courseCode = document.getElementById("courseCode").value.trim()
+            const instructorEmail = sessionStorage.getItem("userEmail")
+            
 
             let blnError = false
             let strMessage = ""
@@ -122,7 +124,6 @@ document.addEventListener("DOMContentLoaded", function () {
             if (!startDate) strMessage += "<p class='mb-0 mt-0'>Start Date is required</p>", blnError = true
             if (!endDate) strMessage += "<p class='mb-0 mt-0'>End Date is required</p>", blnError = true
             if (!courseCode) strMessage += "<p class='mb-0 mt-0'>Course Code is required</p>", blnError = true
-
             if (blnError) {
                 Swal.fire({
                     title: "Error",
@@ -145,7 +146,8 @@ document.addEventListener("DOMContentLoaded", function () {
                     term: courseTerm,
                     start: startDate,
                     end: endDate,
-                    code: courseCode
+                    code: courseCode,
+                    email: instructorEmail
                 })
             })
             .then(response => {
@@ -264,6 +266,7 @@ document.addEventListener("DOMContentLoaded", function () {
             .then(res => res.json())
             .then(data => {
                 if (data.status === "success") {
+                    sessionStorage.setItem("userEmail", strUserName)
                     Swal.fire({
                         title: "Success!",
                         html: `<p class='mb-0 mt-0'>Welcome, ${data.firstName} (${data.userType})</p>`,
