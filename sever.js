@@ -313,7 +313,139 @@ app.post('/peerreview/enroll', (req, res, next) => {
     }
 })
 
+app.post('/peerreview/course-group', (req, res) => {
+    const { groupName, courseNumber } = req.body;
+  
+    if (!groupName || !courseNumber) {
+      return res.status(400).json({ status: 'error', message: 'Group name and course number are required.' });
+    }
+  
+    const sql = `INSERT INTO tblCourseGroups (GroupName, CourseNumber) VALUES (?, ?)`;
+  
+    db.run(sql, [groupName.trim(), courseNumber], function (err) {
+      if (err) {
+        console.error('Error inserting group:', err.message);
+        return res.status(500).json({ status: 'error', message: 'Failed to create group.' });
+      }
+  
+      res.status(201).json({ status: 'success', message: 'Group created.', groupName });
+    });
+});
 
+app.get('/peerreview/course-groups', (req, res) => {
+    const sql = `SELECT * FROM tblCourseGroups`;
+  
+    db.all(sql, [], (err, rows) => {
+      if (err) {
+        console.error('Select error:', err.message);
+        return res.status(500).json({
+          status: 'error',
+          message: 'Failed to retrieve groups'
+        });
+      }
+  
+      res.status(200).json({
+        status: 'success',
+        groups: rows
+      });
+    });
+});
+  
+app.get('/peerreview/users', (req, res) => {
+    const sql = `SELECT FirstName, LastName, Email, CreationDateTime, LastLoginDateTime, UserType FROM tblUsers`;
+  
+    db.all(sql, [], (err, rows) => {
+      if (err) {
+        console.error('Error fetching users:', err.message);
+        return res.status(500).json({ status: 'error', message: 'Failed to fetch users.' });
+      }
+  
+      res.status(200).json({ status: 'success', users: rows });
+    });
+});
+
+app.get('/peerreview/users/:email', (req, res) => {
+    const email = req.params.email;
+  
+    if (!email) {
+      return res.status(400).json({ status: 'error', message: 'Email parameter is required.' });
+    }
+  
+    const sql = `SELECT FirstName, LastName, Email, CreationDateTime, LastLoginDateTime, UserType FROM tblUsers WHERE Email = ?`;
+  
+    db.get(sql, [email], (err, row) => {
+      if (err) {
+        console.error('Error fetching user:', err.message);
+        return res.status(500).json({ status: 'error', message: 'Failed to fetch user.' });
+      }
+  
+      if (!row) {
+        return res.status(404).json({ status: 'error', message: 'User not found.' });
+      }
+  
+      res.status(200).json({ status: 'success', user: row });
+    });
+});
+  
+app.post('/peerreview/group-member', (req, res) => {
+    const { groupName, studentEmail } = req.body;
+  
+    if (!groupName || !studentEmail) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Group name and student email are required.'
+      });
+    }
+  
+    const insertSql = `
+      INSERT INTO tblGroupMembers (GroupName, StudentEmail)
+      VALUES (?, ?)
+    `;
+  
+    db.run(insertSql, [groupName, studentEmail], function (err) {
+      if (err) {
+        if (err.message.includes('UNIQUE constraint failed')) {
+          return res.status(409).json({
+            status: 'error',
+            message: 'This student is already in the group.'
+          });
+        }
+  
+        console.error('Error assigning student to group:', err.message);
+        return res.status(500).json({
+          status: 'error',
+          message: 'Failed to assign student: ' + err.message
+        });
+      }
+  
+      return res.status(201).json({
+        status: 'success',
+        message: 'Student added to group successfully',
+        rowId: this.lastID
+      });
+    });
+});
+
+app.get('/peerreview/course-groups', (req, res) => {
+    const sql = `SELECT GroupName, CourseNumber FROM tblCourseGroups`;
+  
+    db.all(sql, [], (err, rows) => {
+      if (err) {
+        console.error('Error fetching course groups:', err.message);
+        return res.status(500).json({
+          status: 'error',
+          message: 'Failed to retrieve course groups'
+        });
+      }
+  
+      res.status(200).json({
+        status: 'success',
+        groups: rows
+      });
+    });
+  });
+  
+  
 app.listen(HTTP_PORT,() => {
     console.log('App listening on',HTTP_PORT)
 })

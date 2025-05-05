@@ -26,12 +26,23 @@
           <!-- Team Management -->
           <h5 class="text-primary">Team Management</h5>
           <div class="mb-3">
-            <input type="text" class="form-control mb-2" placeholder="Team Name">
-            <select class="form-select mb-2">
-              <option selected>Select Course</option>
-              <option>CSC 4615</option>
+            <input type="text" class="form-control mb-2" placeholder="Team Name" id="teamName">
+            <select class="form-select mb-2" id="teamCourseDropdown">
+              <option value="">Loading courses...</option>
             </select>
-            <button class="btn btn-success btn-sm">Create Team</button>
+            <button class="btn btn-success btn-sm" onclick="createGroup()">Create Team</button>
+          </div>
+
+          <!-- Assign Students to Group -->
+<h5 class="text-primary">Assign Students to Group</h5>
+<div class="mb-3">
+  <select class="form-select mb-2" id="targetGroupName">
+    <option value="">Loading groups...</option>
+  </select>
+            <select class="form-select mb-2" id="studentSelect">
+              <option value="">Loading students...</option>
+            </select>
+            <button class="btn btn-secondary btn-sm" onclick="assignStudentToGroup()">Assign Student</button>
           </div>
 
           <!-- Review Creation -->
@@ -108,112 +119,209 @@
   </div>
 
   <!-- Create Course Modal -->
-  <div class="modal fade" id="createCourseModal" tabindex="-1" aria-labelledby="createCourseModalLabel">
-    <div class="modal-dialog modal-lg">
-      <div class="modal-content">
-        <form id="createCourseForm">
-          <div class="modal-header">
-            <h5 class="modal-title" id="createCourseModalLabel">Create New Course</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+<div class="modal fade" id="createCourseModal" tabindex="-1" aria-labelledby="createCourseModalLabel">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <form id="createCourseForm">
+        <div class="modal-header">
+          <h5 class="modal-title" id="createCourseModalLabel">Create New Course</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body row g-3">
+          <div class="col-md-6">
+            <label for="courseName" class="form-label">Course Name</label>
+            <input type="text" class="form-control" id="courseName" required>
           </div>
-          <div class="modal-body row g-3">
-            <div class="col-md-6">
-              <label for="courseName" class="form-label">Course Name</label>
-              <input type="text" class="form-control" id="courseName" required>
-            </div>
-            <div class="col-md-6">
-              <label for="courseNumber" class="form-label">Course Number</label>
-              <input type="text" class="form-control" id="courseNumber" required>
-            </div>
-            <div class="col-md-4">
-              <label for="courseSection" class="form-label">Section</label>
-              <input type="text" class="form-control" id="courseSection" required>
-            </div>
-            <div class="col-md-4">
-              <label for="courseTerm" class="form-label">Term</label>
-              <input type="text" class="form-control" id="courseTerm" required>
-            </div>
-            <div class="col-md-4">
-              <label for="courseCode" class="form-label">Course Code</label>
-              <div class="input-group">
-                <input type="text" class="form-control" id="courseCode" readonly required>
-                <button class="btn btn-outline-secondary" type="button" id="btnGenerateCode">Generate</button>
-              </div>
-            </div>
-            <div class="col-md-6">
-              <label for="startDate" class="form-label">Start Date</label>
-              <input type="date" class="form-control" id="startDate" required>
-            </div>
-            <div class="col-md-6">
-              <label for="endDate" class="form-label">End Date</label>
-              <input type="date" class="form-control" id="endDate" required>
-            </div>
-            <div class="col-12">
-              <label for="instructorEmail" class="form-label">Instructor Email</label>
-              <input type="email" class="form-control" id="instructorEmail" required>
+          <div class="col-md-6">
+            <label for="courseNumber" class="form-label">Course Number</label>
+            <input type="text" class="form-control" id="courseNumber" required>
+          </div>
+          <div class="col-md-4">
+            <label for="courseSection" class="form-label">Section</label>
+            <input type="text" class="form-control" id="courseSection" required>
+          </div>
+          <div class="col-md-4">
+            <label for="courseTerm" class="form-label">Term</label>
+            <input type="text" class="form-control" id="courseTerm" required>
+          </div>
+          <div class="col-md-4">
+            <label for="courseCode" class="form-label">Course Code</label>
+            <div class="input-group">
+              <input type="text" class="form-control" id="courseCode" readonly required>
+              <button class="btn btn-outline-secondary" type="button" id="btnGenerateCode">Generate</button>
             </div>
           </div>
-          <div class="modal-footer">
-            <button class="btn btn-primary" type="submit">Create Course</button>
+          <div class="col-md-6">
+            <label for="startDate" class="form-label">Start Date</label>
+            <input type="date" class="form-control" id="startDate" required>
           </div>
-        </form>
-      </div>
+          <div class="col-md-6">
+            <label for="endDate" class="form-label">End Date</label>
+            <input type="date" class="form-control" id="endDate" required>
+          </div>
+          <div class="col-12">
+            <label for="instructorEmail" class="form-label">Instructor Email</label>
+            <input type="email" class="form-control" id="instructorEmail" required>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-primary" type="submit">Create Course</button>
+        </div>
+      </form>
     </div>
   </div>
+</div>
 
   <!-- Scripts -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  <script>
-    function generateCourseCode() {
-      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-      let code = '';
-      for (let i = 0; i < 6; i++) {
-        code += chars.charAt(Math.floor(Math.random() * chars.length));
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+// Create course form submission
+const courseForm = document.getElementById('createCourseForm');
+if (courseForm) {
+  courseForm.addEventListener('submit', function (e) {
+    e.preventDefault();
+    const courseData = {
+      name: document.getElementById('courseName').value,
+      number: document.getElementById('courseNumber').value,
+      section: document.getElementById('courseSection').value,
+      term: document.getElementById('courseTerm').value,
+      code: document.getElementById('courseCode').value,
+      start: document.getElementById('startDate').value,
+      end: document.getElementById('endDate').value,
+      email: document.getElementById('instructorEmail').value
+    };
+
+    fetch('http://localhost:8000/peerreview/course', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(courseData)
+    })
+      .then(response => response.json())
+      .then(data => {
+        if (data.status === 'success') {
+          alert('Course created successfully!');
+          courseForm.reset();
+          document.getElementById('courseCode').value = '';
+          const modal = bootstrap.Modal.getInstance(document.getElementById('createCourseModal'));
+          modal.hide();
+          loadCourses(courseData.email);
+          loadCourseDropdown();
+        } else {
+          alert('Error: ' + data.message);
+        }
+      })
+      .catch(err => {
+        console.error('Error creating course:', err);
+        alert('Something went wrong.');
+      });
+  });
+}
+</script>
+<script>
+function generateCourseCode() {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let code = '';
+  for (let i = 0; i < 6; i++) {
+    code += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return code;
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const btnGenerate = document.getElementById('btnGenerateCode');
+  if (btnGenerate) {
+    btnGenerate.addEventListener('click', () => {
+      const codeField = document.getElementById('courseCode');
+      if (codeField) {
+        codeField.value = generateCourseCode();
       }
-      return code;
+    });
+  }
+});
+</script>
+  <script>
+    function loadCourseDropdown() {
+      fetch('http://localhost:8000/peerreview/courses?userEmail=ijwhite42@tntech.edu')
+        .then(res => res.json())
+        .then(data => {
+          const dropdown = document.getElementById('teamCourseDropdown');
+          dropdown.innerHTML = '';
+          data.courses.forEach(course => {
+            const opt = document.createElement('option');
+            opt.value = course.CourseNumber;
+            opt.textContent = `${course.CourseName} (${course.CourseNumber})`;
+            dropdown.appendChild(opt);
+          });
+        });
     }
 
-    document.getElementById('btnGenerateCode').addEventListener('click', function () {
-      document.getElementById('courseCode').value = generateCourseCode();
+    function loadStudentUsers() {
+      fetch('http://localhost:8000/peerreview/users')
+        .then(response => response.json())
+        .then(data => {
+          const select = document.getElementById('studentSelect');
+          select.innerHTML = '';
+          data.users
+            .filter(user => user.UserType?.toLowerCase() === 'student')
+            .forEach(user => {
+              const opt = document.createElement('option');
+              opt.value = user.Email;
+              opt.textContent = `${user.FirstName} ${user.LastName}`;
+              select.appendChild(opt);
+            });
+        });
+    }
+
+    function assignStudentToGroup() {
+  const groupName = document.getElementById('targetGroupName').value.trim();
+  const studentEmail = document.getElementById('studentSelect').value;
+  if (!groupName || !studentEmail) {
+    alert('Please select a student and enter a group name.');
+    return;
+  }
+
+  fetch('http://localhost:8000/peerreview/group-member', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ groupName, studentEmail })
+  })
+    .then(response => response.json())
+    .then(data => {
+      if (data.status === 'success') {
+        alert('Student successfully assigned to group!');
+      } else {
+        alert('Error: ' + data.message);
+      }
+    })
+    .catch(err => {
+      console.error('Error assigning student to group:', err);
+      alert('Something went wrong.');
     });
+    }
 
-    document.getElementById('createCourseForm').addEventListener('submit', function (e) {
-      e.preventDefault();
+    function createGroup() {
+      const groupName = document.getElementById('teamName').value.trim();
+      const courseNumber = document.getElementById('teamCourseDropdown').value;
+      if (!groupName || !courseNumber) return alert('Please enter team name and select course number.');
 
-      const courseData = {
-        name: document.getElementById('courseName').value,
-        number: document.getElementById('courseNumber').value,
-        section: document.getElementById('courseSection').value,
-        term: document.getElementById('courseTerm').value,
-        code: document.getElementById('courseCode').value,
-        start: document.getElementById('startDate').value,
-        end: document.getElementById('endDate').value,
-        email: document.getElementById('instructorEmail').value
-      };
-
-      fetch('http://localhost:8000/peerreview/course', {
+      fetch('http://localhost:8000/peerreview/course-group', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(courseData)
+        body: JSON.stringify({ groupName, courseNumber })
       })
         .then(response => response.json())
         .then(data => {
           if (data.status === 'success') {
-            alert('Course created successfully!');
-            document.getElementById('createCourseForm').reset();
-            document.getElementById('courseCode').value = '';
-            const modal = bootstrap.Modal.getInstance(document.getElementById('createCourseModal'));
-            modal.hide();
-            loadCourses('ijwhite42@tntech.edu');
+            alert('Team created successfully!');
           } else {
             alert('Error: ' + data.message);
           }
         })
         .catch(err => {
-          console.error('Error creating course:', err);
+          console.error('Error creating team:', err);
           alert('Something went wrong.');
         });
-    });
+    }
 
     function loadCourses(emailOverride = null) {
       const email = emailOverride || document.getElementById('instructorEmail').value;
@@ -236,10 +344,28 @@
         });
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
+    function loadGroupDropdown() {
+  fetch('http://localhost:8000/peerreview/course-groups')
+    .then(res => res.json())
+    .then(data => {
+      const dropdown = document.getElementById('targetGroupName');
+      dropdown.innerHTML = '';
+      data.groups.forEach(group => {
+        const opt = document.createElement('option');
+        opt.value = group.GroupName;
+        opt.textContent = group.GroupName + ' (Course ' + group.CourseNumber + ')';
+        dropdown.appendChild(opt);
+      });
+    });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
       const testEmail = 'ijwhite42@tntech.edu';
       document.getElementById('instructorEmail').value = testEmail;
       loadCourses(testEmail);
+      loadCourseDropdown();
+      loadStudentUsers();
+      loadGroupDropdown();
     });
   </script>
 </body>
