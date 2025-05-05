@@ -340,6 +340,7 @@ app.post('/peerreview/assessments', (req, res) =>
     })
 })
 
+// Gets all assessments for a course
 app.get('/peerreview/assessments/:CourseID', (req, res) => 
 {
     let strCourseID = req.params.CourseID;
@@ -392,6 +393,7 @@ app.post('/peerreview/questions', (req, res) =>
     })
 })
 
+// gets all questions for an assessment
 app.get('/peerreview/questions/:AssessmentID', (req, res) => 
 {
     let intAssessmentID = req.params.AssessmentID;
@@ -445,6 +447,7 @@ app.post('/peerreview/responses', (req, res) =>
     })
 })
 
+//gets all responses from an assessment towards the target student
 app.get('/peerreview/responses/:AssessmentID/:TargetEmail', (req, res) => 
 {
     let intAssessmentID = req.params.AssessmentID
@@ -473,6 +476,27 @@ app.get('/peerreview/responses/:AssessmentID/:TargetEmail', (req, res) =>
     })
 })
 
+//gets all the student's courses
+
+app.get('/peerreview/studentassessments/:UserID', (req, res) => {
+    let strUserID = req.params.UserID;
+
+    const Select = `
+        SELECT a.* 
+        FROM tblAssessments a
+        JOIN tblEnrollments e ON a.CourseID = e.CourseID
+        WHERE e.UserID = ?
+    `;
+
+    db.all(Select, [strUserID], function(err, result) {
+        if (err) {
+            console.log(err);
+            res.status(500).json({ status: "error", message: err.message });
+        } else {
+            res.status(200).json({ status: "success", items: result });
+        }
+    });
+});
 
 
 
