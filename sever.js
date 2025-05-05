@@ -634,6 +634,43 @@ app.get('/peerreview/course-groups', (req, res) => {
   });
   
 // --------------------------------------------------------------
+// Delete a Question by ID
+app.delete('/peerreview/delete-question/:questionId', (req, res) => {
+    const questionId = req.params.questionId;
+  
+    if (!questionId) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Question ID is required.'
+      });
+    }
+  
+    const deleteSql = `DELETE FROM tblAssessmentQuestions WHERE QuestionID = ?`;
+  
+    db.run(deleteSql, [questionId], function (err) {
+      if (err) {
+        console.error('Error deleting question:', err.message);
+        return res.status(500).json({
+          status: 'error',
+          message: 'Failed to delete question.'
+        });
+      }
+  
+      if (this.changes === 0) {
+        // No rows deleted (invalid id)
+        return res.status(404).json({
+          status: 'error',
+          message: 'Question not found.'
+        });
+      }
+  
+      res.status(200).json({
+        status: 'success',
+        message: 'Question deleted successfully.'
+      });
+    });
+  });
+  
 
 app.listen(HTTP_PORT,() => {
     console.log('App listening on',HTTP_PORT)

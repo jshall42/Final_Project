@@ -59,15 +59,40 @@
           <!-- Questions CRUD -->
           <h5 class="text-primary">Review Questions</h5>
           <div class="mb-3">
-            <label class="form-label">Question Type</label>
-            <select class="form-select mb-2">
-              <option>Likert</option>
-              <option>Multiple Choice</option>
-              <option>Short Answer</option>
-            </select>
-            <textarea class="form-control mb-2" rows="2" placeholder="Enter question text"></textarea>
-            <button class="btn btn-success btn-sm">Add Question</button>
+            <form id="createQuestionForm">
+              <div class="mb-2">
+                <label for="assessmentIDInput" class="form-label">Select Assessment</label>
+                <select id="assessmentDropdown" class="form-select mb-2">
+                  <option value="">Loading assessments...</option>
+                </select>
+                <button type="button" class="btn btn-outline-primary btn-sm mb-2" onclick="createNewAssessment()">Create New Assessment</button>
+              </div>
+              <div class="mb-2">
+                <label for="questionTypeSelect" class="form-label">Question Type</label>
+                <select id="questionTypeSelect" class="form-select mb-2">
+                  <option value="Likert">Likert</option>
+                  <option value="Multiple Choice">Multiple Choice</option>
+                  <option value="Short Answer">Short Answer</option>
+                </select>
+              </div>
+              <div class="mb-2">
+                <label for="optionsInput" class="form-label">Options (comma-separated, for multiple choice/likert)</label>
+                <input type="text" class="form-control" id="optionsInput" placeholder="e.g., Strongly Agree, Agree, Neutral, Disagree, Strongly Disagree">
+              </div>
+              <div class="mb-2">
+                <label for="questionNarrativeInput" class="form-label">Question Text</label>
+                <textarea class="form-control" id="questionNarrativeInput" rows="2" placeholder="Enter the question text"></textarea>
+              </div>
+              <div class="mb-2">
+                <label for="helperTextInput" class="form-label">Helper Text (optional)</label>
+                <input type="text" class="form-control" id="helperTextInput" placeholder="e.g., Provide 3 detailed examples">
+              </div>
+              <button type="submit" class="btn btn-success btn-sm">Add Question</button>
+            </form>
           </div>
+
+          <div id="questionList" class="mb-4"></div>
+
 
           <!-- Schedule Reviews -->
           <h5 class="text-primary">Schedule Review</h5>
@@ -227,6 +252,181 @@ function generateCourseCode() {
   return code;
 }
 
+// Handle creating a Question
+document.addEventListener('DOMContentLoaded', function() {
+  const createQuestionForm = document.getElementById('createQuestionForm');
+  if (createQuestionForm) {
+    createQuestionForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const assessmentId = document.getElementById('assessmentDropdown').value.trim();
+      const questionType = document.getElementById('questionTypeSelect').value.trim();
+      const options = document.getElementById('optionsInput').value.trim();
+      const questionNarrative = document.getElementById('questionNarrativeInput').value.trim();
+      const helperText = document.getElementById('helperTextInput').value.trim();
+
+      if (!assessmentId || !questionType || !questionNarrative) {
+        alert('Assessment ID, Question Type, and Question Narrative are required!');
+        return;
+      }
+
+      try {
+        const res = await fetch('http://localhost:8000/peerreview/questions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            AssessmentID: assessmentId,
+            QuestionType: questionType,
+            Options: options,
+            QuestionNarrative: questionNarrative,
+            HelperText: helperText
+          })
+        });
+
+        const data = await res.json();
+
+        if (data.status === 'success') {
+          alert('Question added successfully!');
+          createQuestionForm.reset();
+        } else {
+          alert('Error: ' + data.message);
+        }
+      } catch (error) {
+        console.error('Error adding question:', error);
+        alert('Something went wrong.');
+      }
+    });
+  }
+});
+
+async function loadQuestions(assessmentId) {
+  if (!assessmentId) {
+    document.getElementById('questionList').innerHTML = '<p class="text-muted">Enter an Assessment ID to view questions.</p>';
+    return;
+  }
+
+  try {
+    const res = await fetch(`http://localhost:8000/peerreview/questions/${assessmentId}`);
+    const data = await res.json();
+
+    const questionList = document.getElementById('questionList');
+    questionList.innerHTML = ''; // Clear previous questions
+
+    if (data.status === 'success' && data.items.length > 0) {
+      data.items.forEach(question => {
+        const questionDiv = document.createElement('div');
+        questionDiv.className = 'card mb-2 p-2';
+
+        questionDiv.innerHTML = `
+          <div>
+            <strong>Type:</strong> ${question.QuestionType}<br>
+            <strong>Question:</strong> ${question.QuestionNarrative}<br>
+            ${question.Options ? `<strong>Options:</strong> ${question.Options}<br>` : ''}
+            ${question.HelperText ? `<strong>Helper Text:</strong> ${question.HelperText}<br>` : ''}
+            <button class="btn btn-danger btn-sm mt-2" onclick="deleteQuestion(${question.QuestionID}, ${assessmentId})">Delete</button>
+          </div>
+        `;
+
+        questionList.appendChild(questionDiv);
+      });
+    } else {
+      questionList.innerHTML = '<p class="text-muted">No questions found for this assessment.</p>';
+    }
+
+  } catch (error) {
+    console.error('Error loading questions:', error);
+    document.getElementById('questionList').innerHTML = '<p class="text-danger">Failed to load questions.</p>';
+  }
+}
+
+async function deleteQuestion(questionId, assessmentId) {
+  if (!confirm('Are you sure you want to delete this question?')) {
+    return;
+  }
+
+  try {
+    const res = await fetch(`http://localhost:8000/peerreview/delete-question/${questionId}`, {
+      method: 'DELETE'
+    });
+
+    const data = await res.json();
+
+    if (data.status === 'success') {
+      alert('Question deleted successfully!');
+      loadQuestions(assessmentId); // Refresh list
+    } else {
+      alert('Error: ' + data.message);
+    }
+  } catch (error) {
+    console.error('Error deleting question:', error);
+    alert('Something went wrong.');
+  }
+}
+
+
+async function loadAssessments(courseId) {
+  const dropdown = document.getElementById('assessmentDropdown');
+  dropdown.innerHTML = '<option value="">Select an Assessment</option>';
+
+  if (!courseId) return;
+
+  try {
+    const response = await fetch(`http://localhost:8000/peerreview/assessments/${courseId}`);
+    const data = await response.json();
+
+    if (data.status === 'success' && data.items.length > 0) {
+      data.items.forEach(assessment => {
+        const option = document.createElement('option');
+        option.value = assessment.AssessmentID;
+        option.textContent = assessment.Name || `Assessment ${assessment.AssessmentID}`;
+        dropdown.appendChild(option);
+      });
+    } else {
+      dropdown.innerHTML = '<option value="">No assessments found</option>';
+    }
+  } catch (err) {
+    console.error('Error loading assessments:', err);
+    dropdown.innerHTML = '<option value="">Error loading assessments</option>';
+  }
+}
+
+async function createNewAssessment() {
+  const courseId = prompt('Enter the Course ID to create a new Assessment for:');
+  const name = prompt('Enter a Name for the Assessment:');
+
+  if (!courseId || !name) {
+    alert('Course ID and Name are required!');
+    return;
+  }
+
+  try {
+    const response = await fetch('http://localhost:8000/peerreview/assessments', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        CourseID: courseId,
+        StartDate: new Date().toISOString(), // today
+        EndDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(), // +2 weeks
+        Name: name,
+        Status: 'Draft',
+        Type: 'Peer Review'
+      })
+    });
+
+    const data = await response.json();
+
+    if (data.status === 'success') {
+      alert('Assessment created successfully!');
+      loadAssessments(courseId); // reload the dropdown
+    } else {
+      alert('Error: ' + data.message);
+    }
+  } catch (error) {
+    console.error('Error creating assessment:', error);
+    alert('Something went wrong.');
+  }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   const btnGenerate = document.getElementById('btnGenerateCode');
   if (btnGenerate) {
@@ -362,6 +562,14 @@ document.addEventListener('DOMContentLoaded', () => {
 document.addEventListener('DOMContentLoaded', () => {
       const testEmail = 'ijwhite42@tntech.edu';
       document.getElementById('instructorEmail').value = testEmail;
+      const assessmentDropdown = document.getElementById('assessmentDropdown');
+      if (assessmentDropdown) {
+        assessmentDropdown.addEventListener('change', () => {
+          const assessmentId = assessmentDropdown.value.trim();
+          loadQuestions(assessmentId);
+        });
+      }
+      
       loadCourses(testEmail);
       loadCourseDropdown();
       loadStudentUsers();
