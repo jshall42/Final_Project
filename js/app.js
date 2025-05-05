@@ -4,6 +4,7 @@ document.addEventListener("DOMContentLoaded", function () {
     // dom elements
     const loginForm = document.getElementById("frmLogin")
     const signUpForm = document.getElementById("frmRegister")
+    const instructorForm = document.getElementById("instructorView")
 
     // generate a random course code
     function generateCourseCode() {
@@ -568,4 +569,9 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         })
     }
+
+    if (instructorForm) {
+        console.log("Instructor form loaded")
+    }
+
 })

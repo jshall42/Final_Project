@@ -1,0 +1,12 @@
+Students should be able to securely login
+Faculty should be able to securely login
+
+
+Faculty should be able to assign students to groups
+Faculty should be able to design evaluations that include various question types
+Faculty should be able to assign evaluations to be completed
+Faculty should be able to see the results of the evaluations
+
+
+Students should be able to respond to evaluations
+-Consider giving the ability to give both private and public feedback
