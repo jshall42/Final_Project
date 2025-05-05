@@ -559,6 +559,38 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 }
 
+async function scheduleReview() {
+  const assessmentId = document.getElementById('scheduleReviewDropdown').value;
+  const dueDate = document.getElementById('reviewDueDate').value;
+
+  if (!assessmentId || !dueDate) {
+    alert('Please select a review and set a due date!');
+    return;
+  }
+
+  try {
+    const response = await fetch(`http://localhost:8000/peerreview/schedule-review`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        AssessmentID: assessmentId,
+        DueDate: dueDate
+      })
+    });
+
+    const data = await response.json();
+
+    if (data.status === 'success') {
+      alert('Review scheduled successfully!');
+    } else {
+      alert('Error: ' + data.message);
+    }
+  } catch (error) {
+    console.error('Error scheduling review:', error);
+    alert('Something went wrong.');
+  }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
       const testEmail = 'ijwhite42@tntech.edu';
       document.getElementById('instructorEmail').value = testEmail;
