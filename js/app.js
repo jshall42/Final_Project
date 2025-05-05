@@ -257,18 +257,35 @@ document.addEventListener("DOMContentLoaded", function () {
         courseContainer.innerHTML = "" // clear existing content
     
         courses.forEach(course => {
-            const courseCard = `
-                <div class="col-md-4 mb-4">
-                    <button class="btn w-100 text-start p-3 shadow-sm border-0 bg-white">
+            const courseButton = document.createElement("button")
+            courseButton.className = "btn w-100 text-start p-3 shadow-sm border-0 bg-white"
+            courseButton.innerHTML = `
                         <h5 class="mb-1">${course.CourseName} ${course.CourseNumber}</h5>
                         <p class="mb-0">Course Code: ${course.CourseCode}</p>
                         <p class="mb-0">Section: ${course.CourseSection}</p>
                         <p class="mb-0">Term: ${course.CourseTerm}</p>
                         <p class="mb-0">Instructor: ${course.InstructorName}</p>
-                    </button>
-                </div>
             `
-            courseContainer.insertAdjacentHTML("beforeend", courseCard)
+
+            courseButton.addEventListener("click", () =>{
+                Swal.fire({
+                    title: `${course.CourseName} ${course.CourseNumber}`,
+                html: `
+                    <p><strong>Section:</strong> ${course.CourseSection}</p>
+                    <p><strong>Term:</strong> ${course.CourseTerm}</p>
+                    <p><strong>Instructor:</strong> ${course.InstructorName}</p>
+                    <p><strong>Code:</strong> ${course.CourseCode}</p>
+                `,
+                icon: "info",
+                confirmButtonText: "OK"
+                })
+            })
+
+            const colDiv = document.createElement("div")
+            colDiv.className = 'col-md-4 mb-4'
+            colDiv.appendChild(courseButton)
+            colContainer.appendChild(colDiv)
+            //courseContainer.insertAdjacentHTML("beforeend", courseCard)
         })
     }
 
@@ -336,7 +353,7 @@ document.addEventListener("DOMContentLoaded", function () {
     // login form submission
     if (loginForm) {
         document.querySelector("#btnLogin").addEventListener("click", (e) => {
-            e.preventDefault() // prevent the form from submitting normally
+            e.preventDefault() // prevent the form from submitting normally            
             const regEmail = /[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/
             const regPassword = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,}$/
             
@@ -379,7 +396,6 @@ document.addEventListener("DOMContentLoaded", function () {
             .then(data => {
                 if (data.status === "success") {
                     sessionStorage.setItem("userEmail", strUserName)
-                    loadCoursePage(data.userType, strUserName)
                     Swal.fire({
                         title: "Success!",
                         html: `<p class='mb-0 mt-0'>Welcome, ${data.firstName} (${data.userType})</p>`,
@@ -572,6 +588,71 @@ document.addEventListener("DOMContentLoaded", function () {
 
     if (instructorForm) {
         console.log("Instructor form loaded")
+
+        // Create Question Button Handler
+        const addQuestionBtn = document.getElementById('btnAddQuestion');
+        if (addQuestionBtn) {
+            addQuestionBtn.addEventListener('click', async () => {
+            const assessmentId = document.getElementById('assessmentIdInput')?.value.trim();
+            const questionType = document.getElementById('questionTypeSelect')?.value.trim();
+            const options = document.getElementById('optionsInput')?.value.trim();
+            const questionNarrative = document.getElementById('questionNarrativeInput')?.value.trim();
+            const helperText = document.getElementById('helperTextInput')?.value.trim();
+
+        if (!assessmentId || !questionType || !questionNarrative) {
+            Swal.fire({
+                title: "Error",
+                text: "Assessment ID, Question Type, and Question Narrative are required.",
+                icon: "error"
+            });
+            return;
+        }
+
+        try {
+            const res = await fetch('http://localhost:8000/peerreview/questions', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    AssessmentID: assessmentId,
+                    QuestionType: questionType,
+                    Options: options,
+                    QuestionNarrative: questionNarrative,
+                    HelperText: helperText
+                })
+            });
+
+            const data = await res.json();
+            if (data.status === 'success') {
+                Swal.fire({
+                    title: "Success!",
+                    text: "Question created successfully.",
+                    icon: "success"
+                });
+
+                document.getElementById('assessmentIdInput').value = "";
+                document.getElementById('questionTypeSelect').value = "";
+                document.getElementById('optionsInput').value = "";
+                document.getElementById('questionNarrativeInput').value = "";
+                document.getElementById('helperTextInput').value = "";
+
+            } else {
+                Swal.fire({
+                    title: "Error",
+                    text: data.message || "Failed to create question.",
+                    icon: "error"
+                });
+            }
+        } catch (error) {
+            console.error(error);
+            Swal.fire({
+                title: "Server Error",
+                text: "Could not connect to server.",
+                icon: "error"
+            });
+        }
+    });
+}
+
     }
 
 })

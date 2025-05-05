@@ -3,6 +3,7 @@ const cors = require('cors')
 const { v4: uuidv4 } = require('uuid')
 const sqlite3 = require('sqlite3').verbose()
 const bcrypt = require('bcrypt')
+const path = require('path')
 
 const intSalt = 10
 const dbSource = "server.db"
@@ -13,6 +14,8 @@ var app = express()
 app.use(cors())
 app.use(express.json())
 
+
+app.use(express.static(path.join(__dirname, 'Final_Project')))
 
 app.post('/peerreview/user', (req, res, next) => {
     try {
@@ -630,7 +633,8 @@ app.get('/peerreview/course-groups', (req, res) => {
     });
   });
   
-  
+// --------------------------------------------------------------
+
 app.listen(HTTP_PORT,() => {
     console.log('App listening on',HTTP_PORT)
 })
