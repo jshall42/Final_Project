@@ -48,12 +48,18 @@
           <!-- Review Creation -->
           <h5 class="text-primary">Create Review</h5>
           <div class="mb-3">
-            <input type="text" class="form-control mb-2" placeholder="Review Title">
-            <select class="form-select mb-2">
-              <option selected>Select Course</option>
-              <option>CSC 4615</option>
+            <input type="text" class="form-control mb-2" id="reviewTitle" placeholder="Review Title">
+            <select class="form-select mb-2" id="reviewCourse">
+              <option value="">Select Course</option>
             </select>
-            <button class="btn btn-primary btn-sm">Create Review</button>
+            <input type="date" class="form-control mb-2" id="reviewStart">
+            <input type="date" class="form-control mb-2" id="reviewEnd">
+            <select class="form-select mb-2" id="reviewType">
+              <option value="">Select Type</option>
+              <option value="Team">Team</option>
+              <option value="Individual">Individual</option>
+            </select>
+            <button class="btn btn-primary btn-sm" onclick="createAssessment()">Create Review</button>
           </div>
 
           <!-- Questions CRUD -->
@@ -241,19 +247,26 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
   <script>
     function loadCourseDropdown() {
-      fetch('http://localhost:8000/peerreview/courses?userEmail=ijwhite42@tntech.edu')
-        .then(res => res.json())
-        .then(data => {
-          const dropdown = document.getElementById('teamCourseDropdown');
-          dropdown.innerHTML = '';
+  fetch('http://localhost:8000/peerreview/courses?userEmail=ijwhite42@tntech.edu')
+    .then(res => res.json())
+    .then(data => {
+      const dropdowns = [
+        document.getElementById('teamCourseDropdown'),
+        document.getElementById('reviewCourse')
+      ];
+      dropdowns.forEach(dropdown => {
+        if (dropdown) {
+          dropdown.innerHTML = '<option value="">Select Course</option>';
           data.courses.forEach(course => {
             const opt = document.createElement('option');
             opt.value = course.CourseNumber;
             opt.textContent = `${course.CourseName} (${course.CourseNumber})`;
             dropdown.appendChild(opt);
           });
-        });
-    }
+        }
+      });
+    });
+}
 
     function loadStudentUsers() {
       fetch('http://localhost:8000/peerreview/users')
@@ -356,6 +369,51 @@ document.addEventListener('DOMContentLoaded', () => {
         opt.textContent = group.GroupName + ' (Course ' + group.CourseNumber + ')';
         dropdown.appendChild(opt);
       });
+    });
+}
+
+
+
+function createAssessment() {
+  const name = document.getElementById('reviewTitle').value.trim();
+  const courseId = document.getElementById('reviewCourse').value;
+  const startDate = document.getElementById('reviewStart').value;
+  const endDate = document.getElementById('reviewEnd').value;
+  const type = document.getElementById('reviewType').value;
+
+  if (!name || !courseId || !startDate || !endDate || !type) {
+    alert('Please fill out all fields to create an assessment.');
+    return;
+  }
+
+  fetch('http://localhost:8000/peerreview/assessments', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      Name: name,
+      CourseID: courseId,
+      StartDate: startDate,
+      EndDate: endDate,
+      Type: type,
+      Status: 'Draft'
+    })
+  })
+    .then(response => response.json())
+    .then(data => {
+      if (data.status === 'success') {
+        alert('Assessment created successfully!');
+        document.getElementById('reviewTitle').value = '';
+        document.getElementById('reviewStart').value = '';
+        document.getElementById('reviewEnd').value = '';
+        document.getElementById('reviewCourse').value = '';
+        document.getElementById('reviewType').value = '';
+      } else {
+        alert('Error: ' + data.message);
+      }
+    })
+    .catch(err => {
+      console.error('Error creating assessment:', err);
+      alert('Something went wrong.');
     });
 }
 
