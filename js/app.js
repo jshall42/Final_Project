@@ -310,27 +310,30 @@ document.addEventListener("DOMContentLoaded", function () {
         document.getElementById("btnShowLogin").classList.add("d-none")
         document.getElementById("btnLogout").classList.remove("d-none")
 
-        fetch("components/course.html")
-            .then(response => response.text())
-            .then(html => {
-                document.querySelector('#divContent').innerHTML = html
-                document.querySelector('#divContent').style.display = 'block'
+        //fetch("components/course.html")
+        //fetch("course.html")
+            //.then(response => response.text())
+            //.then(html => {
+                //document.querySelector('#divContent').innerHTML = html
+                //document.querySelector('#divContent').style.display = 'block'
 
                 // show the buttons based on user type
-                if (userType === "teacher") {
-                    document.getElementById("btnCreate").classList.remove("d-none")
-                } else if (userType === "student") {
-                    document.getElementById("btnAdd").classList.remove("d-none")
-                }
+        if (userType === "teacher") {
+            window.location.href="components/instructorView.html"
+            //document.getElementById("btnCreate").classList.remove("d-none")
+        } else if (userType === "student") {
+            window.location.href="components/studentView.html"
+            //document.getElementById("btnAdd").classList.remove("d-none")
+        }
 
                 // event listeners for the course page
-                initializeCoursePageEventListeners()
+            //    initializeCoursePageEventListeners()
 
                 // fetch and display courses after initializing event listeners
-                const userEmail = sessionStorage.getItem("userEmail")
-                fetchAndDisplayCourses(userEmail)
-            })
-            .catch(error => console.error("Error loading course page:", error))
+            //    const userEmail = sessionStorage.getItem("userEmail")
+            //    fetchAndDisplayCourses(userEmail)
+            //})
+            //.catch(error => console.error("Error loading course page:", error))
     }
 
     // login form submission
