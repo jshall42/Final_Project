@@ -65,25 +65,12 @@
           <!-- Questions CRUD -->
           <h5 class="text-primary">Review Questions</h5>
           <div class="mb-3">
-            <label class="form-label">Question Type</label>
-            <select class="form-select mb-2">
-              <option>Likert</option>
-              <option>Multiple Choice</option>
-              <option>Short Answer</option>
+            <select class="form-select mb-2" id="reviewCourseDropdown">
+              <option value="">Select Review</option>
             </select>
+            <label class="form-label">Question</label>
             <textarea class="form-control mb-2" rows="2" placeholder="Enter question text"></textarea>
-            <button class="btn btn-success btn-sm">Add Question</button>
-          </div>
-
-          <!-- Schedule Reviews -->
-          <h5 class="text-primary">Schedule Review</h5>
-          <div class="mb-3">
-            <label class="form-label">Select Review</label>
-            <select class="form-select mb-2">
-              <option>Team Review: Project Alpha</option>
-            </select>
-            <input type="date" class="form-control mb-2">
-            <button class="btn btn-primary btn-sm">Schedule</button>
+            <button class="btn btn-success btn-sm" id="addReviewQuestion">Add Question</button>
           </div>
 
           <!-- Review Submissions -->
@@ -94,31 +81,6 @@
             </select>
             <button class="btn btn-secondary btn-sm">View Responses</button>
           </div>
-
-          <!-- Privacy Settings -->
-          <h5 class="text-primary">Privacy Settings</h5>
-          <div class="form-check">
-            <input class="form-check-input" type="radio" name="privacyOptions" id="publicReview" checked>
-            <label class="form-check-label" for="publicReview">Public Review</label>
-          </div>
-          <div class="form-check">
-            <input class="form-check-input" type="radio" name="privacyOptions" id="privateReview">
-            <label class="form-check-label" for="privateReview">Private Review</label>
-          </div>
-
-          <!-- Reports -->
-          <h5 class="text-primary mt-4">Reports</h5>
-          <ul class="list-group mb-3">
-            <li class="list-group-item">Student Average: <strong>92</strong></li>
-            <li class="list-group-item">Class Metrics:
-              <ul>
-                <li>Highest Avg: 98</li>
-                <li>Lowest Avg: 70</li>
-                <li>Median: 87</li>
-              </ul>
-            </li>
-          </ul>
-          <button class="btn btn-outline-secondary btn-sm">Sort By Score</button>
         </div>
       </div>
     </div>
@@ -268,7 +230,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 }
 
-    function loadStudentUsers() {
+function loadStudentUsers() {
       fetch('http://localhost:8000/peerreview/users')
         .then(response => response.json())
         .then(data => {
@@ -285,7 +247,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    function assignStudentToGroup() {
+function assignStudentToGroup() {
   const groupName = document.getElementById('targetGroupName').value.trim();
   const studentEmail = document.getElementById('studentSelect').value;
   if (!groupName || !studentEmail) {
@@ -417,6 +379,61 @@ function createAssessment() {
     });
 }
 
+
+//TODO
+function loadReviewDropdown() {
+  fetch('http://localhost:8000/peerreview/assessments')
+    .then(res => res.json())
+    .then(data => {
+      const dropdown = document.getElementById('reviewCourseDropdown');
+      dropdown.innerHTML = '<option value="">Select Review</option>';
+      data.assessments.forEach(assessment => {
+        const opt = document.createElement('option');
+        opt.value = assessment.AssessmentID;
+        opt.textContent = `${assessment.Name} (${assessment.Type})`;
+        dropdown.appendChild(opt);
+      });
+    });
+}
+
+
+document.getElementById('addReviewQuestion').addEventListener('click', () => {
+  const questionText = document.querySelector('textarea[placeholder="Enter question text"]').value.trim();
+  const reviewId = document.getElementById('reviewCourseDropdown').value;
+
+  if (!questionText || !reviewId) {
+    alert('Please select a review and enter a question.');
+    return;
+  }
+
+  fetch('http://localhost:8000/peerreview/questions', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      AssessmentID: reviewId,
+      QuestionNarrative: questionText
+    })
+  })
+    .then(res => res.json())
+    .then(data => {
+      if (data.status === 'success') {
+        alert('Question added successfully!');
+        document.querySelector('textarea[placeholder="Enter question text"]').value = '';
+      } else {
+        alert('Error: ' + data.message);
+      }
+    })
+    .catch(err => {
+      console.error('Error adding question:', err);
+      alert('Something went wrong.');
+    });
+});
+
+
+  // Load initial data
+
+
+
 document.addEventListener('DOMContentLoaded', () => {
       const testEmail = sessionStorage.getItem("userEmail");
       document.getElementById('instructorEmail').value = testEmail;
@@ -424,6 +441,7 @@ document.addEventListener('DOMContentLoaded', () => {
       loadCourseDropdown();
       loadStudentUsers();
       loadGroupDropdown();
+      loadReviewDropdown();
     });
   </script>
 </body>

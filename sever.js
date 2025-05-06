@@ -481,16 +481,36 @@ app.get('/peerreview/assessments/:CourseID', (req, res) =>
     })
 })
 
+app.get('/peerreview/assessments', (req, res) => {
+    const selectSql = `SELECT * FROM tblAssessments`;
+
+    db.all(selectSql, [], function (err, result) {
+        if (err) {
+            console.log(err);
+            res.status(500).json({
+                status: "error",
+                message: err.message
+            });
+        } else {
+            res.status(200).json({
+                status: "success",
+                assessments: result
+            });
+        }
+    });
+});
+
+
 //Post and Get for tblAssessmentQuestions
 
 app.post('/peerreview/questions', (req, res) => 
 {
-
+    // set intAssessmentID to a random number for testing purposes
     let intAssessmentID = req.body.AssessmentID
-    let strQuestionType = req.body.QuestionType
-    let strOptions = req.body.Options
+    let strQuestionType = "Short Answer"
+    let strOptions = ""
     let strQuestionNarrative = req.body.QuestionNarrative
-    let strHelperText = req.body.HelperText
+    let strHelperText = ""
 
     let arrParameters = [intAssessmentID, strQuestionType, strOptions, strQuestionNarrative, strHelperText]
 
