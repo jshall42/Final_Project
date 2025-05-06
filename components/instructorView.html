@@ -435,7 +435,7 @@ document.getElementById('addReviewQuestion').addEventListener('click', () => {
 
 
 document.addEventListener('DOMContentLoaded', () => {
-      const testEmail = 'ijwhite42@tntech.edu';
+      const testEmail = sessionStorage.getItem("userEmail");
       document.getElementById('instructorEmail').value = testEmail;
       loadCourses(testEmail);
       loadCourseDropdown();
